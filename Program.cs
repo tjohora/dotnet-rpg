@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // This tells the controller to use the named services in its body. Basically registering the service to be used.
 builder.Services.AddScoped<ICharacterService, CharacterService>();
