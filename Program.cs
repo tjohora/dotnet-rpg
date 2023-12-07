@@ -17,6 +17,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // This tells the controller to use the named services in its body. Basically registering the service to be used.
 builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 var app = builder.Build();
 
