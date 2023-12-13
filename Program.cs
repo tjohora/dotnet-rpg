@@ -1,6 +1,7 @@
 global using dotnet_rpg.Models;
 global using dotnet_rpg.Services.CharacterService;
 using dotnet_rpg.Data;
+using dotnet_rpg.Services.FightService;
 using dotnet_rpg.Services.WeaponService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 // This tells the controller to use the named services in its body. Basically registering the service to be used.
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
+builder.Services.AddScoped<IFightService, FightService>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
