@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using dotnet_rpg.Data;
@@ -13,19 +14,33 @@ namespace dotnet_rpg.Services.CharacterService
     {
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _dbContext;
-        public CharacterService(IMapper mapper, ApplicationDbContext dbContext)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public CharacterService(IMapper mapper, ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _dbContext = dbContext;
         }
+
+        // This method here accesses the user id from the claims (token). This is done as a seperate function as
+        // we will be needing the user id a lot, and previously we had a line of code inside each controller action
+        // to get the id from the claims. More efficent to has a function that does this (DRY)
+        private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         public async Task<ServiceResponse<List<GetCharacterResponseDto>>> AddCharacter(AddCharacterRequestDto newCharacter)
         {
             var ServiceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
             var character = _mapper.Map<Character>(newCharacter);
+            character.User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+
             _dbContext.Characters.Add(character);
             await _dbContext.SaveChangesAsync();
-            ServiceResponse.Data = await _dbContext.Characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync();
+
+            ServiceResponse.Data =
+                await _dbContext.Characters
+                    .Where(c => c.User!.Id == GetUserId())
+                    .Select(c => _mapper.Map<GetCharacterResponseDto>(c))
+                    .ToListAsync();
             return ServiceResponse;
         }
 
@@ -35,7 +50,8 @@ namespace dotnet_rpg.Services.CharacterService
             try
             {
 
-                var character = await _dbContext.Characters.FirstOrDefaultAsync(c => c.Id == id);
+                var character = await _dbContext.Characters
+                    .FirstOrDefaultAsync(c => c.Id == id && c.User!.Id == GetUserId());
                 if (character == null)
                 {
                     throw new Exception($"Character with Id '{id}' not found.");
@@ -45,7 +61,10 @@ namespace dotnet_rpg.Services.CharacterService
 
                 await _dbContext.SaveChangesAsync();
 
-                ServiceResponse.Data = await _dbContext.Characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync();
+                ServiceResponse.Data = await _dbContext.Characters
+                    .Where(c => c.User!.Id == GetUserId())
+                    .Select(c => _mapper.Map<GetCharacterResponseDto>(c))
+                    .ToListAsync();
             }
             catch (Exception e)
             {
@@ -57,10 +76,10 @@ namespace dotnet_rpg.Services.CharacterService
 
         }
 
-        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters(int userId)
+        public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
         {
             var ServiceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
-            var dbCharacters = await _dbContext.Characters.Where(c => c.User!.Id == userId).ToListAsync();
+            var dbCharacters = await _dbContext.Characters.Where(c => c.User!.Id == GetUserId()).ToListAsync();
             ServiceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
             return ServiceResponse;
         }
@@ -68,7 +87,8 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterResponseDto>> GetCharacterById(int id)
         {
             var ServiceResponse = new ServiceResponse<GetCharacterResponseDto>();
-            var dbCharacter = await _dbContext.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            var dbCharacter = await _dbContext.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.User!.Id == GetUserId());
             ServiceResponse.Data = _mapper.Map<GetCharacterResponseDto>(dbCharacter);
             return ServiceResponse;
         }
@@ -79,8 +99,12 @@ namespace dotnet_rpg.Services.CharacterService
             try
             {
 
-                var character = await _dbContext.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
-                if (character == null)
+                // This include is needed to get the user data for the character and will require and
+                // Since User is relational data, the User object will not be added Include to be used.
+                var character = await _dbContext.Characters
+                    .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
+                if (character is null || character.User!.Id != GetUserId())
                 {
                     throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
                 }
