@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using dotnet_rpg.Data;
 using dotnet_rpg.Dtos.Fight;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +12,10 @@ namespace dotnet_rpg.Services.FightService
     public class FightService : IFightService
     {
         private readonly ApplicationDbContext _dbContext;
-        public FightService(ApplicationDbContext dbContext)
+        private readonly IMapper _mapper;
+        public FightService(ApplicationDbContext dbContext, IMapper mapper)
         {
+            _mapper = mapper;
             _dbContext = dbContext;
         }
 
@@ -216,6 +219,22 @@ namespace dotnet_rpg.Services.FightService
             }
 
             return damage;
+        }
+
+        public async Task<ServiceResponse<List<HighScoreDto>>> GetHighScore()
+        {
+            var characters = await _dbContext.Characters
+                .Where(c => c.Fights > 0)
+                .OrderByDescending(c => c.Victories)
+                .ThenBy(c => c.Defeats)
+                .ToListAsync();
+
+            var response = new ServiceResponse<List<HighScoreDto>>()
+            {
+                Data = characters.Select(c => _mapper.Map<HighScoreDto>(c)).ToList()
+            };
+
+            return response;
         }
     }
 }
