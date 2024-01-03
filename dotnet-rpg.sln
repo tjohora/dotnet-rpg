@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-rpg", "dotnet-rpg.csproj", "{B1000C0E-38D7-4B0A-BB2F-8A97D89E09D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-rpg.Tests.Unit", "..\dotnet-rpg-tests\dotnet-rpg.Tests.Unit.csproj", "{7A391F38-80E1-443D-A5A1-949729BE9836}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B1000C0E-38D7-4B0A-BB2F-8A97D89E09D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1000C0E-38D7-4B0A-BB2F-8A97D89E09D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1000C0E-38D7-4B0A-BB2F-8A97D89E09D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A391F38-80E1-443D-A5A1-949729BE9836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A391F38-80E1-443D-A5A1-949729BE9836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A391F38-80E1-443D-A5A1-949729BE9836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A391F38-80E1-443D-A5A1-949729BE9836}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
